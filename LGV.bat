@@ -5,16 +5,23 @@ title LGV - Local Generation Video
 
 cd /d "%~dp0"
 
-if "%LGV_PORT%"=="" set "LGV_PORT=5177"
+set "LGV_CHECK=0"
 set "LGV_AUTO_OPEN=1"
+
+if "%LGV_PORT%"=="" set "LGV_PORT=5177"
+
+if /I "%~1"=="--check" set "LGV_CHECK=1"
+if /I "%~1"=="--no-browser" set "LGV_AUTO_OPEN=0"
+if /I "%~2"=="--no-browser" set "LGV_AUTO_OPEN=0"
+
 if not "%~1"=="" (
-  if /I "%~1"=="--no-browser" (
-    set "LGV_AUTO_OPEN=0"
-  ) else (
-    set "LGV_PORT=%~1"
+  if /I not "%~1"=="--check" (
+    if /I not "%~1"=="--no-browser" (
+      set "LGV_PORT=%~1"
+    )
   )
 )
-if /I "%~2"=="--no-browser" set "LGV_AUTO_OPEN=0"
+
 set "LGV_URL=http://127.0.0.1:%LGV_PORT%"
 
 echo.
@@ -42,11 +49,16 @@ if not exist "%~dp0src\server.js" (
   exit /b 1
 )
 
+if "%LGV_CHECK%"=="1" (
+  echo [LGV] Проверка батника пройдена.
+  exit /b 0
+)
+
 echo [LGV] Проверяю, не запущен ли сервис уже...
-powershell -NoProfile -ExecutionPolicy Bypass -Command "$url = $env:LGV_URL + '/api/jobs'; try { $response = Invoke-WebRequest -UseBasicParsing -Uri $url -TimeoutSec 2; if ($response.StatusCode -ge 200 -and $response.StatusCode -lt 500) { exit 10 } } catch { exit 0 }"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "try { Invoke-WebRequest -UseBasicParsing -Uri ($env:LGV_URL + '/api/jobs') -TimeoutSec 2 | Out-Null; exit 10 } catch { exit 0 }"
 
 if "%ERRORLEVEL%"=="10" (
-  echo [LGV] Сервис уже запущен. Второй сервер не стартую, чтобы не мешать текущей задаче.
+  echo [LGV] Сервис уже запущен. Второй сервер не стартую.
   if "%LGV_AUTO_OPEN%"=="1" start "" "%LGV_URL%"
   echo.
   pause
@@ -58,9 +70,7 @@ echo [LGV] Не закрывайте это окно, пока идет анал
 echo [LGV] Для остановки сервиса нажмите Ctrl+C в этом окне.
 echo.
 
-if "%LGV_AUTO_OPEN%"=="1" (
-  start "" powershell -NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -Command "Start-Sleep -Seconds 2; Start-Process $env:LGV_URL"
-)
+if "%LGV_AUTO_OPEN%"=="1" start "" "%LGV_URL%"
 
 node "%~dp0src\server.js"
 set "LGV_EXIT=%ERRORLEVEL%"
