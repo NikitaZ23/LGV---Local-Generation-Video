@@ -261,8 +261,8 @@ h2 {
   pointer-events: none;
 }
 
-.segmented span,
-.toggles span {
+.segmented label > span,
+.toggles label > span {
   display: grid;
   place-items: center;
   min-height: 38px;
@@ -274,17 +274,25 @@ h2 {
   text-align: center;
 }
 
-.toggles span {
+.toggles label > span {
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: 8px;
-  padding: 0 10px;
+  gap: 6px;
+  padding: 0 8px;
+  overflow: hidden;
+  white-space: nowrap;
 }
 
-.toggles span::after {
+.toggle-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.toggles label > span::after {
   content: "Выкл";
-  min-width: 34px;
+  min-width: 26px;
   color: var(--muted);
-  font-size: 11px;
+  font-size: 10px;
   text-align: right;
   text-transform: uppercase;
 }
@@ -297,7 +305,7 @@ h2 {
 
 .toggles {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 8px;
 }
 
