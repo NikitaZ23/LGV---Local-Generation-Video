@@ -1754,6 +1754,11 @@ async function route(req, res) {
       return;
     }
 
+    if (req.method === 'POST' && pathname === '/api/shutdown') {
+      shutdownFromApi(res);
+      return;
+    }
+
     if (req.method === 'POST' && pathname === '/api/pick-file') {
       const body = await readJson(req);
       sendJson(res, 200, await pickLocalVideoFile(body.initialPath));
@@ -1812,6 +1817,25 @@ server.listen(PORT, '127.0.0.1', () => {
   console.log(`LGV запущен: http://127.0.0.1:${PORT}`);
   console.log(`Папка проекта: ${ROOT_DIR}`);
 });
+
+function shutdownFromApi(res) {
+  if (hasActiveJobs()) {
+    sendJson(res, 409, {
+      error: 'Сейчас выполняется задача. LGV не будет выключен.',
+      activeJobs: activeJobLabels(),
+    });
+    return;
+  }
+
+  sendJson(res, 200, { ok: true, message: 'LGV завершает работу.' });
+
+  setTimeout(() => {
+    console.log('Получен запрос на выключение через API.');
+    server.close(() => {
+      process.exit(0);
+    });
+  }, 100).unref();
+}
 
 function requestShutdown(signal) {
   if (hasActiveJobs()) {

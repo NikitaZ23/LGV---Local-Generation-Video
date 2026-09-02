@@ -27,6 +27,7 @@ set "LGV_PROJECT_DIR=%CD%"
 set "LGV_LOG_DIR=%~dp0data\logs"
 set "LGV_STDOUT_LOG=%LGV_LOG_DIR%\server.log"
 set "LGV_STDERR_LOG=%LGV_LOG_DIR%\server-error.log"
+set "LGV_SERVER_SCRIPT=%~dp0src\server.js"
 
 echo.
 echo ==========================================
@@ -74,7 +75,7 @@ echo [LGV] Окно закроется автоматически.
 echo [LGV] Консольный лог: %LGV_STDOUT_LOG%
 echo.
 
-powershell -NoProfile -ExecutionPolicy Bypass -Command "$node = (Get-Command node -ErrorAction Stop).Source; Start-Process -FilePath $node -ArgumentList @('src/server.js') -WorkingDirectory $env:LGV_PROJECT_DIR -WindowStyle Hidden -RedirectStandardOutput $env:LGV_STDOUT_LOG -RedirectStandardError $env:LGV_STDERR_LOG"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$node = (Get-Command node -ErrorAction Stop).Source; Start-Process -FilePath $node -ArgumentList @($env:LGV_SERVER_SCRIPT) -WorkingDirectory $env:LGV_PROJECT_DIR -WindowStyle Hidden -RedirectStandardOutput $env:LGV_STDOUT_LOG -RedirectStandardError $env:LGV_STDERR_LOG"
 if errorlevel 1 (
   echo [ОШИБКА] Не удалось запустить сервер LGV.
   echo Подробности могут быть в файле: %LGV_STDERR_LOG%
