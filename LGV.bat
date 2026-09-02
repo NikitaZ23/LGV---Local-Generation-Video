@@ -23,6 +23,10 @@ if not "%~1"=="" (
 )
 
 set "LGV_URL=http://127.0.0.1:%LGV_PORT%"
+set "LGV_PROJECT_DIR=%CD%"
+set "LGV_LOG_DIR=%~dp0data\logs"
+set "LGV_STDOUT_LOG=%LGV_LOG_DIR%\server.log"
+set "LGV_STDERR_LOG=%LGV_LOG_DIR%\server-error.log"
 
 echo.
 echo ==========================================
@@ -60,27 +64,24 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command "try { Invoke-WebRequest 
 if "%ERRORLEVEL%"=="10" (
   echo [LGV] Сервис уже запущен. Второй сервер не стартую.
   if "%LGV_AUTO_OPEN%"=="1" start "" "%LGV_URL%"
-  echo.
-  pause
   exit /b 0
 )
 
-echo [LGV] Запускаю сервер...
-echo [LGV] Не закрывайте это окно, пока идет анализ или экспорт.
-echo [LGV] Для остановки сервиса нажмите Ctrl+C в этом окне.
+if not exist "%LGV_LOG_DIR%" mkdir "%LGV_LOG_DIR%" >nul 2>nul
+
+echo [LGV] Запускаю сервер в фоне...
+echo [LGV] Окно закроется автоматически.
+echo [LGV] Консольный лог: %LGV_STDOUT_LOG%
 echo.
+
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$node = (Get-Command node -ErrorAction Stop).Source; Start-Process -FilePath $node -ArgumentList @('src/server.js') -WorkingDirectory $env:LGV_PROJECT_DIR -WindowStyle Hidden -RedirectStandardOutput $env:LGV_STDOUT_LOG -RedirectStandardError $env:LGV_STDERR_LOG"
+if errorlevel 1 (
+  echo [ОШИБКА] Не удалось запустить сервер LGV.
+  echo Подробности могут быть в файле: %LGV_STDERR_LOG%
+  echo.
+  pause
+  exit /b 1
+)
 
 if "%LGV_AUTO_OPEN%"=="1" start "" "%LGV_URL%"
-
-node "%~dp0src\server.js"
-set "LGV_EXIT=%ERRORLEVEL%"
-
-echo.
-if not "%LGV_EXIT%"=="0" (
-  echo [LGV] Сервер остановился с кодом %LGV_EXIT%.
-) else (
-  echo [LGV] Сервер остановлен.
-)
-echo.
-pause
-exit /b %LGV_EXIT%
+exit /b 0

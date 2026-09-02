@@ -1,5 +1,6 @@
 data/jobs/*
 data/exports/*
+data/logs/*
 !data/jobs/.gitkeep
 !data/exports/.gitkeep
 node_modules/
