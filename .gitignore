@@ -1,0 +1,11 @@
+data/jobs/*
+data/exports/*
+!data/jobs/.gitkeep
+!data/exports/.gitkeep
+node_modules/
+.deps/
+.venv/
+__pycache__/
+*.pyc
+.env
+*.log
